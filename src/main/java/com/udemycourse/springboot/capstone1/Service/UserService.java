@@ -46,55 +46,66 @@ public class UserService {
         return false;
     }
 
-   //endpoint 12 :  buy Product "important"
-    public boolean buyProduct(String userId, String productId, String merchantId) {
-        //search user
-        User user = null;
-        for (User u : users) {
-            if (u.getId().equals(userId)){
-                user = u;
-                break;
-            }
-        }
+   ////////endpoint 12 :  buy Product "important"
+   public int buyProduct(String userId, String productId, String merchantId) {
+       // Search User
+       User user = null;
 
-        if (user == null) return false;
+       for (User u : users) {
+           if (u.getId().equals(userId)) {
+               user = u;
+               break;
+           }
+       }
+       if (user == null) {
+           return -1; // User not found
+       }
+       // Search Product
+       Product product = null;
 
-        // search Product
-        Product product = null;
-        for (Product p : productService.getAll()) {
-            if (p.getId().equals(productId)) {
-                product = p;
-                break;
-            }
-        }
+       for (Product p : productService.getAll()) {
+           if (p.getId().equals(productId)) {
+               product = p;
+               break;
+           }
+       }
 
-        if (product == null) return false;
+       if (product == null) {
+           return -2; // Product not found
+       }
 
-        // search for the merchants stock
-        MerchantStock stock = null;     // injection
-        for (MerchantStock ms : merchantStockService.getAll()) {
-            if (ms.getProductId().equals(productId) &&
-                    ms.getMerchantId().equals(merchantId)) {
+       // Search Merchant Stock
+       MerchantStock stock = null;
 
-                stock = ms;
-                break;
-            }
-        }
+       for (MerchantStock ms : merchantStockService.getAll()) {
 
-        if (stock == null) return false;
+           if (ms.getProductId().equals(productId)
+                   && ms.getMerchantId().equals(merchantId)) {
 
-        //  check the stock availability
-        if (stock.getStock() <= 0) return false;
+               stock = ms;
+               break;
+           }
+       }
 
-        //  check the user's balance
-        if (user.getBalance() < product.getPrice()) return false;
+       if (stock == null) {
+           return -3; // Merchant stock not found
+       }
 
-        // Execute the purchase process
-        stock.setStock(stock.getStock() - 1); // Reducing stock
-        user.setBalance(user.getBalance() - product.getPrice()); // Reduce balance
-        return true;
+       // Check Stock
+       if (stock.getStock() <= 0) {
+           return -4; // Out of stock
+       }
 
-    }
+       // Check Balance
+       if (user.getBalance() < product.getPrice()) {
+           return -5; // Insufficient balance
+       }
+
+       // Purchase Process
+       stock.setStock(stock.getStock() - 1);
+       user.setBalance(user.getBalance() - product.getPrice());
+       return 1; // Success
+   }
 
 
 //7 Extra endpoint: get user by role Admin | Coustomer
@@ -152,7 +163,6 @@ public ArrayList<User> getByRole(String role){
 
 
   // 10 Extra endpoint : Buying a product in quantity
-
     public boolean buyProductWithQuantity(String userId, String productId, String merchantId, int quantity) {
         if (quantity <= 0) return false;
         User user = null;
@@ -198,7 +208,58 @@ public ArrayList<User> getByRole(String role){
 
 
 
+//    public boolean buyProduct(String userId, String productId, String merchantId) {
+//        //search user
+//        User user = null;
+//        for (User u : users) {
+//            if (u.getId().equals(userId)){
+//                user = u;
+//                break;
+//            }
+//        }
+//
+//        if (user == null) return false;
+//
+//        // search Product
+//        Product product = null;
+//        for (Product p : productService.getAll()) {
+//            if (p.getId().equals(productId)) {
+//                product = p;
+//                break;
+//            }
+//        }
+//
+//        if (product == null) return false;
+//
+//        // search for the merchants stock
+//        MerchantStock stock = null;     // injection
+//        for (MerchantStock ms : merchantStockService.getAll()) {
+//            if (ms.getProductId().equals(productId) &&
+//                    ms.getMerchantId().equals(merchantId)) {
+//
+//                stock = ms;
+//                break;
+//            }
+//        }
+//
+//        if (stock == null) return false;
+//
+//        //  check the stock availability
+//        if (stock.getStock() <= 0) return false;
+//
+//        //  check the user's balance
+//        if (user.getBalance() < product.getPrice()) return false;
+//
+//        // Execute the purchase process
+//        stock.setStock(stock.getStock() - 1); // Reducing stock
+//        user.setBalance(user.getBalance() - product.getPrice()); // Reduce balance
+//        return true;
+//
+//    }
 
 
 
-}
+
+
+
+    }

@@ -114,14 +114,26 @@ public ArrayList<Product> sortByPrice(){
 
 
 // 12 Extra endpoint : If the product price is above a certain amount, it qualifies for free shipping.
-public boolean isEligibleForFreeShipping(String productId, double minimumAmount) {
-    if (minimumAmount <= 0) return false;
+public int isEligibleForFreeShipping(String productId) {
+    Product product = null;
     for (Product p : products) {
         if (p.getId().equals(productId)) {
-            return p.getPrice() >= minimumAmount;
+            product = p;
+            break;
         }
     }
-    return false;
+
+    if (product == null) {
+        return -1; // Product not found
+    }
+
+    // Free shipping threshold
+    double freeShippingLimit = 500;
+
+    if (product.getPrice() >= freeShippingLimit) {
+        return 1;
+    }
+    return 0;
 }
 
 
@@ -149,14 +161,29 @@ public boolean isEligibleForFreeShipping(String productId, double minimumAmount)
 
 
 
+//Related to apply Discount Controller
+    public Product getProductById(String productId) {
+        for (Product p : products) {
+            if (p.getId().equals(productId)) {
+                return p;
+            }
+        }
+        return null;
+    }
 
 
 
 
 
-
-
-
+//public boolean isEligibleForFreeShipping(String productId, double minimumAmount) {
+//    if (minimumAmount <= 0) return false;
+//    for (Product p : products) {
+//        if (p.getId().equals(productId)) {
+//            return p.getPrice() >= minimumAmount;
+//        }
+//    }
+//    return false;
+//}
 
 
 

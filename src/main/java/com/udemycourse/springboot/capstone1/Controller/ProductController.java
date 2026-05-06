@@ -114,6 +114,11 @@ public class ProductController {
     @PutMapping("/discount/{productId}/{discountPercentage}")
     public ResponseEntity<?> applyDiscount(@PathVariable String productId,
                                            @PathVariable double discountPercentage) {
+      Product product = productService.getProductById(productId);
+        if (product == null) {
+            return ResponseEntity.status(400)
+                    .body(new ApiResponse("Product not found"));
+        }
 
         boolean isDiscounted = productService.applyDiscount(productId, discountPercentage);
 
@@ -123,23 +128,28 @@ public class ProductController {
         }
 
         return ResponseEntity.status(400)
-                .body(new ApiResponse("Failed to apply discount"));
+                .body(new ApiResponse("Invalid discount percentage"));
     }
 
     // CHECK FREE SHIPPING
-    @GetMapping("/free-shipping/{productId}/{minimumAmount}")
-    public ResponseEntity<?> isEligibleForFreeShipping(@PathVariable String productId,
-                                                       @PathVariable double minimumAmount) {
+    @GetMapping("/free-shipping/{productId}")
+    public ResponseEntity<?> isEligibleForFreeShipping(@PathVariable String productId){
+        int result = productService.isEligibleForFreeShipping(productId);
 
-        boolean isEligible = productService.isEligibleForFreeShipping(productId, minimumAmount);
+        switch (result){
 
-        if (isEligible) {
-            return ResponseEntity.status(200)
-                    .body(new ApiResponse("Product is eligible for free shipping"));
+            case -1:
+                return ResponseEntity.status(400)
+                        .body(new ApiResponse("Product not found"));
+
+            case 0:
+                return ResponseEntity.status(200)
+                        .body(new ApiResponse("Product is not eligible for free shipping"));
+
+            default:
+                return ResponseEntity.status(200)
+                        .body(new ApiResponse("Product is eligible for free shipping"));
         }
-
-        return ResponseEntity.status(400)
-                .body(new ApiResponse("Product is not eligible for free shipping"));
     }
 
     // UPDATE PRICE BY CATEGORY

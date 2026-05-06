@@ -1,6 +1,8 @@
 package com.udemycourse.springboot.capstone1.Controller;
 
 import com.udemycourse.springboot.capstone1.Api.ApiResponse;
+import com.udemycourse.springboot.capstone1.Model.MerchantStock;
+import com.udemycourse.springboot.capstone1.Model.Product;
 import com.udemycourse.springboot.capstone1.Model.User;
 import com.udemycourse.springboot.capstone1.Service.UserService;
 import jakarta.validation.Valid;
@@ -9,12 +11,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
+import com.udemycourse.springboot.capstone1.Service.ProductService;
+import com.udemycourse.springboot.capstone1.Service.MerchantStockService;
+
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+    private final ProductService productService;
+    private final MerchantStockService merchantStockService;
+
 
     // GET
     @GetMapping("/get")
@@ -80,15 +88,34 @@ public class UserController {
                                         @PathVariable String productId,
                                         @PathVariable String merchantId) {
 
-        boolean isBought = userService.buyProduct(userId, productId, merchantId);
+        int result = userService.buyProduct(userId, productId, merchantId);
 
-        if (isBought) {
-            return ResponseEntity.status(200)
-                    .body(new ApiResponse("Product purchased successfully"));
+        switch (result){
+
+            case -1:
+                return ResponseEntity.status(400)
+                        .body(new ApiResponse("User not found"));
+
+            case -2:
+                return ResponseEntity.status(400)
+                        .body(new ApiResponse("Product not found"));
+
+            case -3:
+                return ResponseEntity.status(400)
+                        .body(new ApiResponse("Merchant stock not found"));
+
+            case -4:
+                return ResponseEntity.status(400)
+                        .body(new ApiResponse("Product out of stock"));
+
+            case -5:
+                return ResponseEntity.status(400)
+                        .body(new ApiResponse("Insufficient balance"));
+
+            default:
+                return ResponseEntity.status(200)
+                        .body(new ApiResponse("Purchase completed successfully"));
         }
-
-        return ResponseEntity.status(400)
-                .body(new ApiResponse("Purchase failed"));
     }
 
     // GET USERS BY ROLE
@@ -119,7 +146,56 @@ public class UserController {
                                                     @PathVariable String merchantId,
                                                     @PathVariable int quantity) {
 
-        boolean isBought = userService.buyProductWithQuantity(userId, productId, merchantId, quantity);
+        // Check User
+        boolean userExists = false;
+
+        for (User u : userService.getAll()) {
+            if (u.getId().equals(userId)) {
+                userExists = true;
+                break;
+            }
+        }
+
+        if (!userExists) {
+            return ResponseEntity.status(400)
+                    .body(new ApiResponse("User not found"));
+        }
+
+        // Check Product
+        boolean productExists = false;
+
+        for (Product p : productService.getAll()) {
+            if (p.getId().equals(productId)) {
+                productExists = true;
+                break;
+            }
+        }
+
+        if (!productExists) {
+            return ResponseEntity.status(400)
+                    .body(new ApiResponse("Product not found"));
+        }
+
+        // Check Merchant Stock
+        boolean merchantStockExists = false;
+
+        for (MerchantStock ms : merchantStockService.getAll()) {
+            if (ms.getProductId().equals(productId)
+                    && ms.getMerchantId().equals(merchantId)) {
+
+                merchantStockExists = true;
+                break;
+            }
+        }
+
+        if (!merchantStockExists) {
+            return ResponseEntity.status(400)
+                    .body(new ApiResponse("Merchant stock not found"));
+        }
+
+        // Execute Purchase
+        boolean isBought =
+                userService.buyProductWithQuantity(userId, productId, merchantId, quantity);
 
         if (isBought) {
             return ResponseEntity.status(200)
