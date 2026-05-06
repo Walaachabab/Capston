@@ -141,10 +141,8 @@ public class UserController {
 
     // BUY PRODUCT WITH QUANTITY
     @PutMapping("/buy/{userId}/{productId}/{merchantId}/{quantity}")
-    public ResponseEntity<?> buyProductWithQuantity(@PathVariable String userId,
-                                                    @PathVariable String productId,
-                                                    @PathVariable String merchantId,
-                                                    @PathVariable int quantity) {
+    public ResponseEntity<?> buyProductWithQuantity(@PathVariable String userId, @PathVariable String productId,
+                                                    @PathVariable String merchantId, @PathVariable int quantity) {
 
         // Check User
         boolean userExists = false;
